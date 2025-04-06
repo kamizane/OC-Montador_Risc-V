@@ -13,9 +13,9 @@ def tipo_r(instru, rd, rs1, rs2):
         funct7 = "0001100"
 
     #converte os endereços rs2,rs1,rd para binario com 5 bits
-    rd = (conversao_binario(rd)).zfill(5)
-    rs2 = conversao_binario(rs2).zfill(5)
-    rs1 = conversao_binario(rs1).zfill(5)
+    rd = conversao_binario(rd,5)
+    rs2 = conversao_binario(rs2,5)
+    rs1 = conversao_binario(rs1,5)
 
     # Encontra o funct3 da instrução
     if (instru == "add" or instru == "sub"):
@@ -41,13 +41,36 @@ def tipo_r(instru, rd, rs1, rs2):
 
     print(saida)
 
-def conversao_binario(numero):
-    numero = int(numero)
-    binario = ""
-    while numero>0:
-        binario = str(numero%2)+binario
-        numero = numero//2
-    return binario
+#Essa função converte um número decimal, positivo ou negativo, para binário com uma quantidade determinada de bits
+def conversao_binario(numero,bits):
+        numero=int(numero)
+        #Conversão de números maiores ou iguais a zero
+        if numero >=0:
+            binario = ""
+            while numero > 0:
+                binario=str(numero%2)+binario
+                numero=numero//2
+        #No caso de números negativos, calcula-se o complemento de dois
+        else:
+            binario = ""
+            numero=-numero
+            #Conversão para binário
+            while numero > 0:
+                binario=str(numero%2)+binario
+                numero=numero//2
+
+            binario=binario.zfill(bits)
+            #Inversão de bits
+            b_invertido=""
+            for bit in binario:
+                if bit=='0':
+                    b_invertido+='1'
+                else:
+                    b_invertido+='0'
+            #Adição do carry 1
+            binario=bin(int(b_invertido, 2) + 1)[2:]
+
+        return str(binario).zfill(bits)
     
 
 
