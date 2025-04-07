@@ -86,7 +86,48 @@ def tipo_U(instrucao):
 def tipo_UJ(instrucao):
     return 1
 
-def tipo_i(instrucao):
+def tipo_i(instrucao,rd,rs1,imediato):
+    #Definição de parâmetros das instruções tipo I
+    instrucoes={
+
+        "lb":{"opcode":"0000011","funct3":"000","funct7": None},
+        "lh":{"opcode":"0000011","funct3":"001","funct7": None},
+        "lw":{"opcode":"0000011","funct3":"010","funct7": None},
+        "ld":{"opcode":"0000011","funct3":"011","funct7": None},
+        "lbu":{"opcode":"0000011","funct3":"100","funct7": None},
+        "lhu":{"opcode":"0000011","funct3":"101","funct7": None},
+        "lwu":{"opcode":"0000011","funct3":"110","funct7": None},
+        "addi":{"opcode":"0010011","funct3":"000","funct7": None},
+        "slli":{"opcode":"0010011","funct3":"001","funct7": "0000000"},
+        "xori":{"opcode":"0010011","funct3":"100","funct7": None},
+        "srli":{"opcode":"0010011","funct3":"101","funct7": "0000000"},
+        "srai":{"opcode":"0010011","funct3":"101","funct7": "0100000"},
+        "ori":{"opcode":"0010011","funct3":"110","funct7": None},
+        "andi":{"opcode":"0010011","funct3":"111","funct7": None},
+        "jalr":{"opcode":"1100111","funct3":"000","funct7": None},
+    }
+    #Acessa informações referentes à instrução a ser executada
+    dados=instrucoes[instrucao]
+    opcode=dados["opcode"]
+    funct3=dados["funct3"]
+    funct7=dados["funct7"]
+
+    #Realiza a montagem das instruções de acordo com a sua estrutura
+    ##obs: consertar leitura xori
+    if instrucao in ['addi','xori','ori','andi']: 
+        #imediato + rs1 + funct3 + rd + opcode
+        print(f"{conversao_binario(imediato,12)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
+
+    elif instrucao in ['lw','lh','lb','lbu','ld','lhu','lwu','jalr']:
+        #A sintaxe dessas instruções definem que o imediato vem antes do registrador base, por isso será feita a troca de valores
+        rs1, imediato = imediato, rs1
+        #imediato + rs1 + funct3 + rd + opcode
+        print(f"{conversao_binario(imediato,12)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
+
+    elif instrucao in ['srli','slli','srai']:
+        #funct7 + shamt + rs1 + funct3 + rd + opcode
+        print(f"{funct7}   {conversao_binario(imediato,5)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
+
     return 1
 
 def chr_remove(old, to_remove):
@@ -113,7 +154,7 @@ for linha in sys.stdin:
     elif (instru == "jal"):
         tipo_UJ()
     elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
-        tipo_i()
+        tipo_i(instru, linha[1], linha[2], linha[3])
     else:
         print("Instrucao iinválida")
         break
