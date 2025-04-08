@@ -117,18 +117,23 @@ def tipo_i(instrucao,rd,rs1,imediato):
     if instrucao in ['addi','xori','ori','andi']: 
         #imediato + rs1 + funct3 + rd + opcode
         print(f"{conversao_binario(imediato,12)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
+        instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
+
 
     elif instrucao in ['lw','lh','lb','lbu','ld','lhu','lwu','jalr']:
-        #A sintaxe dessas instruções definem que o imediato vem antes do registrador base, por isso será feita a troca de valores
+        #A sintaxe dessas instruções definem que a leitura do imediato vem antes do registrador base, por isso será feita a troca de valores
         rs1, imediato = imediato, rs1
         #imediato + rs1 + funct3 + rd + opcode
         print(f"{conversao_binario(imediato,12)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
+        instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
+
 
     elif instrucao in ['srli','slli','srai']:
         #funct7 + shamt + rs1 + funct3 + rd + opcode
         print(f"{funct7}   {conversao_binario(imediato,5)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
+        instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
 
-    return 1
+    return instrucao_gerada
 
 def chr_remove(old, to_remove):
     new_string = old
@@ -136,25 +141,59 @@ def chr_remove(old, to_remove):
         new_string = new_string.replace(x, ' ')
     return new_string
 
+modo=int(input("Selecione o modo que deseja executar:\n1-Via terminal\n2-Via arquivo\n"))
+if modo == 1:
+    for linha in sys.stdin:
+        linha = chr_remove(linha, ",x&()")
+        linha = linha.split()
+        instru = linha[0]
+        print(linha)
+        print(instru)
+        if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
+            tipo_r(instru, linha[1], linha[2], linha[3])
+        elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
+            tipo_s()
+        elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
+            tipo_sb()
+        elif (instru == "lui"):
+            tipo_U()
+        elif (instru == "jal"):
+            tipo_UJ()
+        elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
+            instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
+            print(instrucao_gerada)
+        else:
+            print("Instrucao inválida")
+            break
+elif modo == 2:
+    #Recebe o nome do arquivo a ser lido
+    local_arquivo = input("Informe o nome do arquivo:\n")
+    #Define o arquivo de saída
+    caminho_saida = "linguagem_de_maquina.asm"
 
-for linha in sys.stdin:
-    linha = chr_remove(linha, ",x&()")
-    linha = linha.split()
-    instru = linha[0]
-    print(linha)
-    print(instru)
-    if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
-        tipo_r(instru, linha[1], linha[2], linha[3])
-    elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
-        tipo_s()
-    elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
-        tipo_sb()
-    elif (instru == "lui"):
-        tipo_U()
-    elif (instru == "jal"):
-        tipo_UJ()
-    elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
-        tipo_i(instru, linha[1], linha[2], linha[3])
-    else:
-        print("Instrucao iinválida")
-        break
+    with open(local_arquivo, 'r') as leitura, open(caminho_saida, 'w') as saida:
+        for linha in leitura:
+            linha = chr_remove(linha, ",x&()")
+            linha = linha.split()
+            instru = linha[0]
+            print(linha)
+            print(instru)
+            #Verifica o tipo da instrução para realizar a montagem
+            if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
+                tipo_r(instru, linha[1], linha[2], linha[3])
+
+            elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
+                tipo_s()
+            elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
+                tipo_sb()
+            elif (instru == "lui"):
+                tipo_U()
+            elif (instru == "jal"):
+                tipo_UJ()
+            elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
+                instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
+                #Escreve a saída no arquivo
+                saida.write(instrucao_gerada)
+            else:
+                print("Instrucao inválida")
+                break
