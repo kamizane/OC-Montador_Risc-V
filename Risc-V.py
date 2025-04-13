@@ -1,5 +1,38 @@
 import sys
 
+#Essa função converte um número decimal, positivo ou negativo, para binário com uma quantidade determinada de bits
+def conversao_binario(numero,bits):
+        numero=int(numero)
+        #Conversão de números maiores ou iguais a zero
+        if numero >=0:
+            binario = ""
+            while numero > 0:
+                binario=str(numero%2)+binario
+                numero=numero//2
+        #No caso de números negativos, calcula-se o complemento de dois
+        else:
+            binario = ""
+            numero=-numero
+            #Conversão para binário
+            while numero > 0:
+                binario=str(numero%2)+binario
+                numero=numero//2
+
+            binario=binario.zfill(bits)
+            #Inversão de bits
+            b_invertido=""
+            for bit in binario:
+                if bit=='0':
+                    b_invertido+='1'
+                else:
+                    b_invertido+='0'
+            #Adição do carry 1
+            binario=bin(int(b_invertido, 2) + 1)[2:]
+
+        return str(binario).zfill(bits)
+
+
+
 def tipo_r(instru, rd, rs1, rs2):
     saida = ""
     # Encontra o funct7 da instrução
@@ -41,44 +74,58 @@ def tipo_r(instru, rd, rs1, rs2):
 
     print(saida)
 
-#Essa função converte um número decimal, positivo ou negativo, para binário com uma quantidade determinada de bits
-def conversao_binario(numero,bits):
-        numero=int(numero)
-        #Conversão de números maiores ou iguais a zero
-        if numero >=0:
-            binario = ""
-            while numero > 0:
-                binario=str(numero%2)+binario
-                numero=numero//2
-        #No caso de números negativos, calcula-se o complemento de dois
-        else:
-            binario = ""
-            numero=-numero
-            #Conversão para binário
-            while numero > 0:
-                binario=str(numero%2)+binario
-                numero=numero//2
+def tipo_s(instru, rs2, imme, rs1):
+    #Conversão para binário
+    imme = conversao_binario(imme, 12)
+    rs1 = conversao_binario(rs1,5)
+    rs2 = conversao_binario(rs2,5)
+    saida = ""
 
-            binario=binario.zfill(bits)
-            #Inversão de bits
-            b_invertido=""
-            for bit in binario:
-                if bit=='0':
-                    b_invertido+='1'
-                else:
-                    b_invertido+='0'
-            #Adição do carry 1
-            binario=bin(int(b_invertido, 2) + 1)[2:]
+    # Encontra o funct3 da instrução
+    if (instru == "sb"):
+        funct3 = "000"
+    elif (instru == "sh"):
+        funct3 = "001"
+    elif (instru == "sw"):
+        funct3 = "010"
+    elif (instru == "sd"):
+        funct3 = "111"
 
-        return str(binario).zfill(bits)
-    
+    # Define o opcode do tipo S
+    opcode = "0100011"
 
+    #imprime a saida
+    saida = imme[:7] + rs2 + rs1 + funct3 + imme[7:]+ opcode
 
-def tipo_s(instrucao):
-    return 1
+def tipo_sb(instru, rs1, rs2, imme):
+    # Encontra o funct3 da instrução
+    imme = conversao_binario(imme, 12)
+    rs1 = conversao_binario(rs1,5)
+    rs2 = conversao_binario(rs2,5)
 
-def tipo_sb(instrucao):
-    return 1
+    saida = ""
+
+    if (instru == "beq"):
+        funct3 = "000"
+    elif (instru == "bne"):
+        funct3 = "001"
+    elif (instru == "blt"):
+        funct3 = "100"
+    elif (instru == "bge"):
+        funct3 = "101"
+    elif (instru == "bltu"):
+        funct3 = "110"
+    elif (instru == "bgeu"):
+        funct3 = "111"
+
+    # Define o opcode do tipo SB
+    opcode = "1100111"
+
+    #imprime a saida
+    saida = imme[11] + imme[1:7] + rs2 + rs1 + funct3 + imme[7:11] + imme[0] + opcode
+
+    print(saida)
+
 
 def tipo_U(instrucao):
     return 1
@@ -147,14 +194,13 @@ if modo == 1:
         linha = chr_remove(linha, ",x&()")
         linha = linha.split()
         instru = linha[0]
-        print(linha)
-        print(instru)
+
         if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
             tipo_r(instru, linha[1], linha[2], linha[3])
         elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
-            tipo_s()
+            tipo_s(instru, linha[1], linha[2], linha[3])
         elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
-            tipo_sb()
+            tipo_sb(instru, linha[1], linha [2], linha[3])
         elif (instru == "lui"):
             tipo_U()
         elif (instru == "jal"):
@@ -183,9 +229,9 @@ elif modo == 2:
                 tipo_r(instru, linha[1], linha[2], linha[3])
 
             elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
-                tipo_s()
+                tipo_s(instru, linha[1], linha[2], linha[3] )
             elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
-                tipo_sb()
+                tipo_sb(instru)
             elif (instru == "lui"):
                 tipo_U()
             elif (instru == "jal"):
