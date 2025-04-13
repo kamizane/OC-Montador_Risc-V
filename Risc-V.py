@@ -127,11 +127,33 @@ def tipo_sb(instru, rs1, rs2, imme):
     print(saida)
 
 
-def tipo_U(instrucao):
-    return 1
+def tipo_U(instrucao,rd,imediato):
 
-def tipo_UJ(instrucao):
-    return 1
+    if instrucao=='lui':
+        opcode='0110111'
+        print(f"{conversao_binario(imediato,20)}   {conversao_binario(rd,5)}   {opcode}")
+        instrucao_gerada=conversao_binario(imediato,20)+conversao_binario(rd,5)+opcode
+
+    return instrucao_gerada
+
+def tipo_UJ(instrucao,rd,imediato):
+
+    if instrucao=='jal':
+        opcode='1101111'
+
+        imediato_bin=conversao_binario(imediato,20)
+
+        im_20 = imediato_bin[0]
+        im_10_1 = imediato_bin[1:11]
+        im_11 = imediato_bin[11] 
+        im_19_12 = imediato_bin[12:20]
+
+        imediato_tratado = im_20 + im_19_12 + im_11 + im_10_1
+
+        print(f"{imediato_tratado}   {conversao_binario(rd,5)}   {opcode}")
+        instrucao_gerada=imediato_tratado+conversao_binario(rd,5)+opcode
+
+    return instrucao_gerada
 
 def tipo_i(instrucao,rd,rs1,imediato):
     #Definição de parâmetros das instruções tipo I
@@ -233,9 +255,9 @@ elif modo == 2:
             elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
                 tipo_sb(instru)
             elif (instru == "lui"):
-                tipo_U()
+                tipo_U(instru,linha[1],linha[2])
             elif (instru == "jal"):
-                tipo_UJ()
+                tipo_UJ(instru,linha[1],linha[2])
             elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
                 instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
                 #Escreve a saída no arquivo
