@@ -31,6 +31,7 @@ def conversao_binario(numero,bits):
 
         return str(binario).zfill(bits)
 
+#Essa função converte um número hexadecimal para decimal
 def conversao_hexa(numero):
     numero = numero.upper().replace("0X", "")
     digitos_hex = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7,
@@ -41,7 +42,7 @@ def conversao_hexa(numero):
     for i in reversed(numero):
         soma+=digitos_hex[i]*16**aux
         aux+=1
-    return soma
+    return str(soma)
 
 
 def tipo_r(instru, rd, rs1, rs2):
@@ -140,9 +141,11 @@ def tipo_sb(instru, rs1, rs2, imme):
 
 
 def tipo_U(instrucao,rd,imediato):
-
+    
     if instrucao=='lui':
-        opcode='0110111'
+        #Define o opcode
+        opcode='0110111' 
+         #Converte os parâmetros para binário e monta a instrução no formato imediato + rd + opcode
         instrucao_gerada=conversao_binario(imediato,20)+conversao_binario(rd,5)+opcode
 
     return instrucao_gerada
@@ -150,17 +153,20 @@ def tipo_U(instrucao,rd,imediato):
 def tipo_UJ(instrucao,rd,imediato):
 
     if instrucao=='jal':
-        opcode='1101111'
+        opcode='1101111' #Define o opcode
         
-        imediato_bin = conversao_binario(imediato, 20)
+        imediato_bin = conversao_binario(imediato, 20) #Converte o imediato para binário de 20 bits
 
+        #Armazena intervalos de acordo a posição dos bits
         im_20 = imediato_bin[0]         
         im_19_12 = imediato_bin[1:9]    
         im_11 = imediato_bin[19]         
         im_10_1 = imediato_bin[9:19] 
 
+        #Realiza a montagem do imediato segundo o formato: imm[20] imm[10:1] imm[11] imm[19:12]
         imediato_tratado = im_20 + im_10_1 + im_11 + im_19_12
 
+        #Monta a instrução completa no formato imediato + rd + opcode
         instrucao_gerada=imediato_tratado+conversao_binario(rd,5)+opcode
 
     return instrucao_gerada
@@ -192,7 +198,6 @@ def tipo_i(instrucao,rd,rs1,imediato):
     funct7=dados["funct7"]
 
     #Realiza a montagem das instruções de acordo com a sua estrutura
-    ##obs: consertar leitura xori
     if instrucao in ['addi','xori','ori','andi']: 
         #imediato + rs1 + funct3 + rd + opcode
         instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
@@ -212,31 +217,16 @@ def tipo_i(instrucao,rd,rs1,imediato):
     return instrucao_gerada
 
 def tipo_pseudo(instrucao,rd,rs_or_imm):
+    #Identifica a pseudo instrução e chama a montagem do seu formato equivalente
 
-    instrucoes={
-        "li":{"opcode":"0010011","funct3":"000"},
-        "mv":{"opcode":"0010011","funct3":"000"},
-        "not":{"opcode":"0010011","funct3":"100"},     
-    }
-
-    dados=instrucoes[instrucao]
-    opcode=dados["opcode"]
-    funct3=dados["funct3"]
-    rd= conversao_binario(rd, 5)
-
-    if instrucao=="li":
-        rs= conversao_binario(0, 5) 
-        imm= conversao_binario(rs_or_imm, 12)
-    elif instrucao=="mv":
-        rs= conversao_binario(rs_or_imm, 5)
-        imm= conversao_binario(0, 12)
-    elif instrucao=="not":
-        rs= conversao_binario(rs_or_imm, 5)
-        imm= conversao_binario(-1, 12)
-
-    instrucao_gerada=imm + rs + funct3 + rd + opcode
-
-    return instrucao_gerada
+    if instrucao=="li": #li equivale a addi,rd,x0,im
+        return tipo_i('addi',rd,0,rs_or_imm)
+    elif instrucao=="mv": #mv equivale a addi,rd,rs1,0
+        return tipo_i('addi',rd,rs_or_imm,0)
+    elif instrucao == "not": #not equivale a xori,rd,rs1,-1
+        return tipo_i('xori',rd,rs_or_imm,-1)
+    else:
+        print("Pseudo instrução inválida")
 
 
 def chr_remove(old, to_remove):
@@ -279,13 +269,14 @@ def main():
             linha = chr_remove(linha, ",&()")
             linha = linha.split()
             instru = linha[0]
-
+            #Faz a remoção de do caractere 'x' ou identifica imediatos na base hexadecimal para conversão
             for i in range(1,len(linha)):
                 if linha[i].startswith("0x"):
                     linha[i]=conversao_hexa(linha[i])
                 elif linha[i].startswith("x"):
                     linha[i] = chr_remove(linha[i], "x")
 
+            #Verifica o tipo da instrução para realizar a montagem
             if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
                 instrucao_gerada = tipo_r(instru, linha[1], linha[2], linha[3])
                 saida.write(instrucao_gerada + "\n")
@@ -312,7 +303,7 @@ def main():
                 break
 
     elif forma == "terminal":
-        #Recebe o nome do arquivo a ser lido
+        #Recebe o nome do arquivo a ser lido, que foi passado pelo terminal
         local_arquivo = sys.argv[1]
 
         with open(local_arquivo, 'r') as leitura:
@@ -321,6 +312,7 @@ def main():
                 linha = linha.split()
                 instru = linha[0]
 
+                #Faz a remoção de do caractere 'x' ou identifica imediatos na base hexadecimal para conversão
                 for i in range(1,len(linha)):
                     if linha[i].startswith("0x"):
                         linha[i]=conversao_hexa(linha[i])
