@@ -155,13 +155,14 @@ def tipo_UJ(instrucao,rd,imediato):
     if instrucao=='jal':
         opcode='1101111' #Define o opcode
         
-        imediato_bin = conversao_binario(imediato, 20) #Converte o imediato para binário de 20 bits
+        imediato_shift=int(imediato)>>1 #Desloca um bit para direita
+        imediato_bin = conversao_binario(imediato_shift, 20) #Converte o imediato para binário de 20 bits
 
         #Armazena intervalos de acordo a posição dos bits
-        im_20 = imediato_bin[0]         
+        im_20 = imediato_bin[0]      
         im_19_12 = imediato_bin[1:9]    
-        im_11 = imediato_bin[19]         
-        im_10_1 = imediato_bin[9:19] 
+        im_11 = imediato_bin[9]         
+        im_10_1 = imediato_bin[10:20] 
 
         #Realiza a montagem do imediato segundo o formato: imm[20] imm[10:1] imm[11] imm[19:12]
         imediato_tratado = im_20 + im_10_1 + im_11 + im_19_12
