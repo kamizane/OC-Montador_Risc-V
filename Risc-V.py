@@ -31,6 +31,17 @@ def conversao_binario(numero,bits):
 
         return str(binario).zfill(bits)
 
+def conversao_hexa(numero):
+    numero = numero.upper().replace("0X", "")
+    digitos_hex = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7,
+                   '8':8, '9':9, 'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15}
+    soma=0
+    aux=0
+
+    for i in reversed(numero):
+        soma+=digitos_hex[i]*16**aux
+        aux+=1
+    return soma
 
 
 def tipo_r(instru, rd, rs1, rs2):
@@ -58,13 +69,13 @@ def tipo_r(instru, rd, rs1, rs2):
     elif (instru == "xor"):
         funct3 = "100"
     elif (instru == "srl" or instru == "sra"):
-        funct3 == "101"
+        funct3 = "101"
     elif (instru == "or"):
-        funct3 == "110"
+        funct3 = "110"
     elif (instru == "and"):
-        funct3 == "111"
+        funct3 = "111"
     elif (instru == "lr.d" or instru == "sc.d"):
-        funct3 == "011"
+        funct3 = "011"
 
     # Seta o opcode correto para as instruções do tipo R
     opcode = "0110011"
@@ -132,7 +143,6 @@ def tipo_U(instrucao,rd,imediato):
 
     if instrucao=='lui':
         opcode='0110111'
-        print(f"{conversao_binario(imediato,20)}   {conversao_binario(rd,5)}   {opcode}")
         instrucao_gerada=conversao_binario(imediato,20)+conversao_binario(rd,5)+opcode
 
     return instrucao_gerada
@@ -141,17 +151,16 @@ def tipo_UJ(instrucao,rd,imediato):
 
     if instrucao=='jal':
         opcode='1101111'
+        
+        imediato_bin = conversao_binario(imediato, 20)
 
-        imediato_bin=conversao_binario(imediato,20)
+        im_20 = imediato_bin[0]         
+        im_19_12 = imediato_bin[1:9]    
+        im_11 = imediato_bin[19]         
+        im_10_1 = imediato_bin[9:19] 
 
-        im_20 = imediato_bin[0]
-        im_10_1 = imediato_bin[1:11]
-        im_11 = imediato_bin[11] 
-        im_19_12 = imediato_bin[12:20]
+        imediato_tratado = im_20 + im_10_1 + im_11 + im_19_12
 
-        imediato_tratado = im_20 + im_19_12 + im_11 + im_10_1
-
-        print(f"{imediato_tratado}   {conversao_binario(rd,5)}   {opcode}")
         instrucao_gerada=imediato_tratado+conversao_binario(rd,5)+opcode
 
     return instrucao_gerada
@@ -186,7 +195,6 @@ def tipo_i(instrucao,rd,rs1,imediato):
     ##obs: consertar leitura xori
     if instrucao in ['addi','xori','ori','andi']: 
         #imediato + rs1 + funct3 + rd + opcode
-        print(f"{conversao_binario(imediato,12)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
         instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
 
 
@@ -194,16 +202,42 @@ def tipo_i(instrucao,rd,rs1,imediato):
         #A sintaxe dessas instruções definem que a leitura do imediato vem antes do registrador base, por isso será feita a troca de valores
         rs1, imediato = imediato, rs1
         #imediato + rs1 + funct3 + rd + opcode
-        print(f"{conversao_binario(imediato,12)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
         instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
 
 
     elif instrucao in ['srli','slli','srai']:
         #funct7 + shamt + rs1 + funct3 + rd + opcode
-        print(f"{funct7}   {conversao_binario(imediato,5)}   {conversao_binario(rs1,5)}   {funct3}   {conversao_binario(rd,5)}   {opcode}")
-        instrucao_gerada=conversao_binario(imediato,12)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
+        instrucao_gerada=funct7+conversao_binario(imediato,5)+conversao_binario(rs1,5)+funct3+conversao_binario(rd,5)+opcode
 
     return instrucao_gerada
+
+def tipo_pseudo(instrucao,rd,rs_or_imm):
+
+    instrucoes={
+        "li":{"opcode":"0010011","funct3":"000"},
+        "mv":{"opcode":"0010011","funct3":"000"},
+        "not":{"opcode":"0010011","funct3":"100"},     
+    }
+
+    dados=instrucoes[instrucao]
+    opcode=dados["opcode"]
+    funct3=dados["funct3"]
+    rd= conversao_binario(rd, 5)
+
+    if instrucao=="li":
+        rs= conversao_binario(0, 5) 
+        imm= conversao_binario(rs_or_imm, 12)
+    elif instrucao=="mv":
+        rs= conversao_binario(rs_or_imm, 5)
+        imm= conversao_binario(0, 12)
+    elif instrucao=="not":
+        rs= conversao_binario(rs_or_imm, 5)
+        imm= conversao_binario(-1, 12)
+
+    instrucao_gerada=imm + rs + funct3 + rd + opcode
+
+    return instrucao_gerada
+
 
 def chr_remove(old, to_remove):
     new_string = old
@@ -218,6 +252,7 @@ def main():
             exit()    
     forma =""
     # verifica se a saida será por terminal ou arquivo
+
     if len(sys.argv) == 2:
         forma = "terminal"
     elif len(sys.argv) == 4 and sys.argv[2] == "-o":
@@ -241,9 +276,15 @@ def main():
 
     if forma == "arquivo":
         for linha in instrucoes:
-            linha = chr_remove(linha, ",x&()")
+            linha = chr_remove(linha, ",&()")
             linha = linha.split()
             instru = linha[0]
+
+            for i in range(1,len(linha)):
+                if linha[i].startswith("0x"):
+                    linha[i]=conversao_hexa(linha[i])
+                elif linha[i].startswith("x"):
+                    linha[i] = chr_remove(linha[i], "x")
 
             if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
                 instrucao_gerada = tipo_r(instru, linha[1], linha[2], linha[3])
@@ -255,46 +296,61 @@ def main():
                 instrucao_gerada=tipo_sb(instru, linha[1], linha [2], linha[3])
                 saida.write(instrucao_gerada + "\n")
             elif (instru == "lui"):
-                instrucao_gerada=tipo_U()
+                instrucao_gerada=tipo_U(instru,linha[1],linha[2])
                 saida.write(instrucao_gerada + "\n")
             elif (instru == "jal"):
-                instrucao_gerada=tipo_UJ()
+                instrucao_gerada=tipo_UJ(instru,linha[1],linha[2])
                 saida.write(instrucao_gerada + "\n")
             elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
                 instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
                 saida.write(instrucao_gerada + "\n")
+            elif (instru=="li" or instru=="not" or instru=="mv"):
+                instrucao_gerada=tipo_pseudo(instru,linha[1],linha[2])
+                saida.write(instrucao_gerada + "\n")
             else:
                 print("Instrucao inválida")
                 break
+
     elif forma == "terminal":
         #Recebe o nome do arquivo a ser lido
-        local_arquivo = input("Informe o nome do arquivo:\n")
-        #Define o arquivo de saída
-        caminho_saida = "linguagem_de_maquina.asm"
+        local_arquivo = sys.argv[1]
 
-        with open(local_arquivo, 'r') as leitura, open(caminho_saida, 'w') as saida:
+        with open(local_arquivo, 'r') as leitura:
             for linha in leitura:
-                linha = chr_remove(linha, ",x&()")
+                linha = chr_remove(linha, ",&()")
                 linha = linha.split()
                 instru = linha[0]
+
+                for i in range(1,len(linha)):
+                    if linha[i].startswith("0x"):
+                        linha[i]=conversao_hexa(linha[i])
+                    elif linha[i].startswith("x"):
+                        linha[i] = chr_remove(linha[i], "x")
+
                 print(linha)
-                print(instru)
+
                 #Verifica o tipo da instrução para realizar a montagem
                 if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
-                    tipo_r(instru, linha[1], linha[2], linha[3])
-
+                    instrucao_gerada=tipo_r(instru, linha[1], linha[2], linha[3])
+                    print(f"{instrucao_gerada}")
                 elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
-                    tipo_s(instru, linha[1], linha[2], linha[3] )
+                    instrucao_gerada=tipo_s(instru, linha[1], linha[2], linha[3] )
+                    print(instrucao_gerada)
                 elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
-                    tipo_sb(instru)
+                    instrucao_gerada=tipo_sb(instru, linha[1], linha [2], linha[3])
+                    print(instrucao_gerada)
                 elif (instru == "lui"):
-                    tipo_U(instru,linha[1],linha[2])
+                    instrucao_gerada=tipo_U(instru,linha[1],linha[2])
+                    print(instrucao_gerada)
                 elif (instru == "jal"):
-                    tipo_UJ(instru,linha[1],linha[2])
+                    instrucao_gerada=tipo_UJ(instru,linha[1],linha[2])
+                    print(instrucao_gerada)
                 elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
                     instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
-                    #Escreve a saída no arquivo
-                    saida.write(instrucao_gerada)
+                    print(instrucao_gerada)
+                elif (instru=="li" or instru=="not" or instru=="mv"):
+                    instrucao_gerada=tipo_pseudo(instru,linha[1],linha[2])
+                    print(instrucao_gerada)
                 else:
                     print("Instrucao inválida")
                     break
