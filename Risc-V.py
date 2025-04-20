@@ -44,7 +44,7 @@ def conversao_hexa(numero):
         aux+=1
     return str(soma)
 
-
+#Função que trata instruções do tipo R
 def tipo_r(instru, rd, rs1, rs2):
     saida = ""
     # Encontra o funct7 da instrução
@@ -85,7 +85,7 @@ def tipo_r(instru, rd, rs1, rs2):
     saida = funct7 + rs2 + rs1 + funct3 +  rd +  opcode
     return saida
     
-
+#Função que trata instruções do tipo S
 def tipo_s(instru, rs2, imme, rs1):
     #Conversão para binário
     imme = conversao_binario(imme, 12)
@@ -110,6 +110,7 @@ def tipo_s(instru, rs2, imme, rs1):
     saida = imme[:7] + rs2 + rs1 + funct3 + imme[7:]+ opcode
     return saida
 
+#Função que trata instruções do tipo SB
 def tipo_sb(instru, rs1, rs2, imme):
     # Encontra o funct3 da instrução
     imme = conversao_binario(imme, 12)
@@ -139,7 +140,7 @@ def tipo_sb(instru, rs1, rs2, imme):
 
     return saida
 
-
+#Função que trata instruções do tipo U
 def tipo_U(instrucao,rd,imediato):
     
     if instrucao=='lui':
@@ -150,6 +151,7 @@ def tipo_U(instrucao,rd,imediato):
 
     return instrucao_gerada
 
+#Função que trata instruções do tipo UJ
 def tipo_UJ(instrucao,rd,imediato):
 
     if instrucao=='jal':
@@ -172,6 +174,7 @@ def tipo_UJ(instrucao,rd,imediato):
 
     return instrucao_gerada
 
+#Função que trata instruções do tipo I
 def tipo_i(instrucao,rd,rs1,imediato):
     #Definição de parâmetros das instruções tipo I
     instrucoes={
@@ -217,6 +220,7 @@ def tipo_i(instrucao,rd,rs1,imediato):
 
     return instrucao_gerada
 
+#Função que trata pseudo instruções
 def tipo_pseudo(instrucao,rd,rs_or_imm):
     #Identifica a pseudo instrução e chama a montagem do seu formato equivalente
 
@@ -229,7 +233,7 @@ def tipo_pseudo(instrucao,rd,rs_or_imm):
     else:
         print("Pseudo instrução inválida")
 
-
+#Função que trata a instrução removendo caracteres indesejados
 def chr_remove(old, to_remove):
     new_string = old
     for x in to_remove:
@@ -237,7 +241,7 @@ def chr_remove(old, to_remove):
     return new_string
 
 def main():
-    #Verifica se está sendo apssado um arquivo .asm
+    #Verifica se está sendo passado um arquivo .asm
     if sys.argv[1][-4:] != ".asm":
             print("Entrada inválida")
             exit()    
