@@ -162,7 +162,7 @@ def tipo_UJ(instrucao,rd,imediato):
         im_20 = imediato_bin[0]      
         im_19_12 = imediato_bin[1:9]    
         im_11 = imediato_bin[9]         
-        im_10_1 = imediato_bin[10:20] 
+        im_10_1 = imediato_bin[10:19] 
 
         #Realiza a montagem do imediato segundo o formato: imm[20] imm[10:1] imm[11] imm[19:12]
         imediato_tratado = im_20 + im_10_1 + im_11 + im_19_12
@@ -307,46 +307,45 @@ def main():
         #Recebe o nome do arquivo a ser lido, que foi passado pelo terminal
         local_arquivo = sys.argv[1]
 
-        with open(local_arquivo, 'r') as leitura:
-            for linha in leitura:
-                linha = chr_remove(linha, ",&()")
-                linha = linha.split()
-                instru = linha[0]
+        for linha in instrucoes:
+            linha = chr_remove(linha, ",&()")
+            linha = linha.split()
+            instru = linha[0]
 
-                #Faz a remoção de do caractere 'x' ou identifica imediatos na base hexadecimal para conversão
-                for i in range(1,len(linha)):
-                    if linha[i].startswith("0x"):
-                        linha[i]=conversao_hexa(linha[i])
-                    elif linha[i].startswith("x"):
-                        linha[i] = chr_remove(linha[i], "x")
+            #Faz a remoção de do caractere 'x' ou identifica imediatos na base hexadecimal para conversão
+            for i in range(1,len(linha)):
+                if linha[i].startswith("0x"):
+                    linha[i]=conversao_hexa(linha[i])
+                elif linha[i].startswith("x"):
+                    linha[i] = chr_remove(linha[i], "x")
 
-                print(linha)
+            print(linha)
 
-                #Verifica o tipo da instrução para realizar a montagem
-                if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
-                    instrucao_gerada=tipo_r(instru, linha[1], linha[2], linha[3])
-                    print(f"{instrucao_gerada}")
-                elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
-                    instrucao_gerada=tipo_s(instru, linha[1], linha[2], linha[3] )
-                    print(instrucao_gerada)
-                elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
-                    instrucao_gerada=tipo_sb(instru, linha[1], linha [2], linha[3])
-                    print(instrucao_gerada)
-                elif (instru == "lui"):
-                    instrucao_gerada=tipo_U(instru,linha[1],linha[2])
-                    print(instrucao_gerada)
-                elif (instru == "jal"):
-                    instrucao_gerada=tipo_UJ(instru,linha[1],linha[2])
-                    print(instrucao_gerada)
-                elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
-                    instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
-                    print(instrucao_gerada)
-                elif (instru=="li" or instru=="not" or instru=="mv"):
-                    instrucao_gerada=tipo_pseudo(instru,linha[1],linha[2])
-                    print(instrucao_gerada)
-                else:
-                    print("Instrucao inválida")
-                    break
+            #Verifica o tipo da instrução para realizar a montagem
+            if (instru == "add" or instru == "sub" or instru == "sll" or instru == "xor" or instru == "srl" or instru == "sra" or instru == "or" or instru == "and" or instru == "lr.d" or instru == "sc.d"):
+                instrucao_gerada=tipo_r(instru, linha[1], linha[2], linha[3])
+                print(f"{instrucao_gerada}")
+            elif (instru == "sb" or instru == "sh" or instru == "sw" or instru == "sd"):
+                instrucao_gerada=tipo_s(instru, linha[1], linha[2], linha[3] )
+                print(instrucao_gerada)
+            elif (instru == "beq" or instru == "bne" or instru == "blt" or instru == "bge" or instru == "bltu" or instru == "bgeu"):
+                instrucao_gerada=tipo_sb(instru, linha[1], linha [2], linha[3])
+                print(instrucao_gerada)
+            elif (instru == "lui"):
+                instrucao_gerada=tipo_U(instru,linha[1],linha[2])
+                print(instrucao_gerada)
+            elif (instru == "jal"):
+                instrucao_gerada=tipo_UJ(instru,linha[1],linha[2])
+                print(instrucao_gerada)
+            elif (instru == "lb" or instru == "lh" or instru == "lw" or instru == "ld" or instru == "lbu" or instru == "lhu" or instru == "lwu" or instru == "addi" or instru == "slli" or instru == "xori" or instru == "srli" or instru == "srai" or instru == "ori" or instru == "andi" or instru == "jalr"):
+                instrucao_gerada=tipo_i(instru, linha[1], linha[2], linha[3])
+                print(instrucao_gerada)
+            elif (instru=="li" or instru=="not" or instru=="mv"):
+                instrucao_gerada=tipo_pseudo(instru,linha[1],linha[2])
+                print(instrucao_gerada)
+            else:
+                print("Instrucao inválida")
+                break
 
 if __name__ == "__main__":
     main()
